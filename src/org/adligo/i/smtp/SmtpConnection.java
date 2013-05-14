@@ -1,6 +1,5 @@
 package org.adligo.i.smtp;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -9,7 +8,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,8 +15,11 @@ import org.adligo.i.adi.client.InvocationException;
 import org.adligo.i.log.client.Log;
 import org.adligo.i.log.client.LogFactory;
 import org.adligo.i.pool.PooledConnection;
+import org.adligo.i.smtp.models.I_EmailMessage;
+import org.adligo.models.core.client.EMailAddress;
 
 public class SmtpConnection extends PooledConnection {
+	private static final String SMTP_LINEFEED = "\r\n";
 	private static final Log log = LogFactory.getLog(SmtpConnection.class);
 	private I_SmtpConnectionFactoryConfig config;
 	private Socket socket;
@@ -65,7 +66,7 @@ public class SmtpConnection extends PooledConnection {
 				authenticator.authenticate(this, credentials);
 				ok = true;
 			} catch (InvocationException x) {
-				log.error(x.getMessage(), x);
+				throw new IOException(x);
 			}
 		} else {
 			ok = true;
@@ -104,7 +105,7 @@ public class SmtpConnection extends PooledConnection {
 			log.debug("Sending command;\n" + command);
 		}
 		printer.write(command);
-		printer.write("\r\n");
+		printer.write(SMTP_LINEFEED);
 		printer.flush();
 		lastResponse = readResponse();
 	}
@@ -203,5 +204,41 @@ public class SmtpConnection extends PooledConnection {
 			sb.append("\n");
 		}
 		return sb.toString();
+	}
+	
+	public void send(I_EmailMessage message) throws IOException {
+		reconnect();
+		
+		EMailAddress from = message.getFrom();
+		sendCommand("MAIL FROM:<" + from.getEMail() + ">");
+		if (!contains("OK", lastResponse)) {
+			throw new IOException("Problem with from address " + from.getEMail());
+		}
+		List<EMailAddress> tos = message.getTo();
+		for (EMailAddress to: tos) {
+			sendCommand("RCPT TO:<" + to.getEMail() + ">");
+			if (!contains("OK", lastResponse)) {
+				throw new IOException("Problem with to address " + to.getEMail());
+			}
+		}
+		sendCommand("DATA");
+		if (!contains("354", lastResponse)) {
+			throw new IOException("Problem with to data command no 354.");
+		}
+		StringBuilder sb = new StringBuilder();
+		String subject = message.getSubject();
+		sb.append("SUBJECT: " + subject);
+		sb.append(SMTP_LINEFEED);
+		String body = message.getBody();
+		sb.append(body);
+		sb.append(SMTP_LINEFEED);
+		sb.append(".");
+		sb.append(SMTP_LINEFEED);
+		
+		String data = sb.toString();
+		sendCommand(sb.toString());
+		if (!contains("250", lastResponse)) {
+			throw new IOException("Problem with to data\n" + data);
+		}
 	}
 }
