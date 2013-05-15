@@ -6,14 +6,16 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class FileInputStreamFactory implements I_InputStreamFactory {
+public class LocalFileEmailAttachment implements I_EMailAttachment {
 	private File file;
+	private String mimeType;
 	
-	public FileInputStreamFactory(String path) {
+	public LocalFileEmailAttachment(String path, String mimeType) {
 		file = new File(path);
+		this.mimeType = mimeType;
 	}
 	
-	public FileInputStreamFactory(File p) {
+	public LocalFileEmailAttachment(File p) {
 		file = p;
 	}
 	@Override
@@ -23,6 +25,15 @@ public class FileInputStreamFactory implements I_InputStreamFactory {
 		} catch (FileNotFoundException x) {
 			throw new IOException(x);
 		}
+	}
+
+	public String getMimeType() {
+		return mimeType;
+	}
+
+	@Override
+	public String getFileName() {
+		return file.getName();
 	}
 
 }

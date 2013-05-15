@@ -18,5 +18,5 @@ public interface I_SmtpAuthenticator {
 	 * @throws InvocationException on authentication error
 	 * @throws IOException on issue with the socket connection
 	 */
-	public void authenticate(SmtpConnection p, I_SmtpCredentials credentials) throws InvocationException, IOException;
+	public void authenticate(I_SmtpConnection p, I_SmtpCredentials credentials) throws InvocationException, IOException;
 }

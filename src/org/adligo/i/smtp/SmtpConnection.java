@@ -18,8 +18,8 @@ import org.adligo.i.pool.PooledConnection;
 import org.adligo.i.smtp.models.I_EmailMessage;
 import org.adligo.models.core.client.EMailAddress;
 
-public class SmtpConnection extends PooledConnection {
-	private static final String SMTP_LINEFEED = "\r\n";
+public class SmtpConnection extends PooledConnection implements I_SmtpConnection {
+	public static final String SMTP_LINEFEED = "\r\n";
 	private static final Log log = LogFactory.getLog(SmtpConnection.class);
 	private I_SmtpConnectionFactoryConfig config;
 	private Socket socket;
@@ -28,7 +28,6 @@ public class SmtpConnection extends PooledConnection {
 	private PrintWriter printer;
 	private boolean ok = false;
 	private String [] ehloResp;
-	private String[] lastResponse;
 	
 	protected SmtpConnection(I_SmtpConnectionFactoryConfig config) {
 		this.config = config;
@@ -42,7 +41,11 @@ public class SmtpConnection extends PooledConnection {
 		}
 		String host = config.getHost();
 		int port = config.getPort();
-		socket = new Socket(host, port);
+		try {
+			socket = new Socket(host, port);
+		} catch (IOException x) {
+			throw new IOException("Problem connecting to " + host + ":"  + port, x);
+		}
 		int maxWait = config.getMaxWait();
 		socket.setSoTimeout(maxWait);
 		
@@ -56,8 +59,7 @@ public class SmtpConnection extends PooledConnection {
 			}
 		}
 		
-		sendCommand("EHLO TEST");
-		ehloResp = lastResponse;
+		ehloResp = sendCommand("EHLO TEST");
 		
 		I_SmtpAuthenticator authenticator = config.getAuthenticator();
 		if (authenticator != null) {
@@ -100,14 +102,18 @@ public class SmtpConnection extends PooledConnection {
 		}
 	}
 
-	public void sendCommand(String command) throws IOException {
+	/* (non-Javadoc)
+	 * @see org.adligo.i.smtp.I_SmtpConnection#sendCommand(java.lang.String)
+	 */
+	@Override
+	public String[] sendCommand(String command) throws IOException {
 		if (log.isDebugEnabled()) {
 			log.debug("Sending command;\n" + command);
 		}
 		printer.write(command);
 		printer.write(SMTP_LINEFEED);
 		printer.flush();
-		lastResponse = readResponse();
+		return readResponse();
 	}
 	
 	private String[] readResponse() throws IOException {
@@ -137,108 +143,21 @@ public class SmtpConnection extends PooledConnection {
 		return lines.toArray(new String[lines.size()]);
 	}
 
-	public boolean responseContains(String p) throws IOException {
-		String [] resps = readResponse();
-		return contains(p, resps);
-	}
-
-	public boolean contains(String p, String[] resps) {
-		p = p.toLowerCase();
-		for (int i = 0; i < resps.length; i++) {
-			String line = resps[i];
-			if (log.isDebugEnabled()) {
-				log.debug(line);
-			}
-			line = line.toLowerCase();
-			
-			if (line.indexOf(p) != -1) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	public boolean contains(String [] p, String[] resps) {
-		for (int i = 0; i < p.length; i++) {
-			p[i] = p[i].toLowerCase();
-		}
-		boolean foundAll = false;
-		for (int i = 0; i < resps.length; i++) {
-			String line = resps[i];
-			if (log.isDebugEnabled()) {
-				log.debug(line);
-			}
-			if (!foundAll) {
-				line = line.toLowerCase();
-				int lastIndex = 0;
-				for (int j = 0; j < p.length; j++) {
-					String searchText = p[j];
-					lastIndex = line.indexOf(searchText, lastIndex);
-					if (j + 1 == p.length && lastIndex >= 1) {
-						foundAll = true;
-					} else if (lastIndex == -1) {
-						foundAll = false;
-					}
-				}
-			}
-		}
-		return foundAll;
-	}
 	
+	/* (non-Javadoc)
+	 * @see org.adligo.i.smtp.I_SmtpConnection#getEhloResp()
+	 */
+	@Override
 	public String[] getEhloResp() {
 		return ehloResp;
 	}
 
-	public String[] getLastResponse() {
-		return lastResponse;
-	}
-
-	public void setLastResponse(String[] lastResponse) {
-		this.lastResponse = lastResponse;
-	}
-	
-	public String toExceptionMessage(String [] p) {
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < p.length; i++) {
-			sb.append(p[i]);
-			sb.append("\n");
-		}
-		return sb.toString();
-	}
-	
+	@Override
 	public void send(I_EmailMessage message) throws IOException {
-		reconnect();
-		
-		EMailAddress from = message.getFrom();
-		sendCommand("MAIL FROM:<" + from.getEMail() + ">");
-		if (!contains("OK", lastResponse)) {
-			throw new IOException("Problem with from address " + from.getEMail());
-		}
-		List<EMailAddress> tos = message.getTo();
-		for (EMailAddress to: tos) {
-			sendCommand("RCPT TO:<" + to.getEMail() + ">");
-			if (!contains("OK", lastResponse)) {
-				throw new IOException("Problem with to address " + to.getEMail());
-			}
-		}
-		sendCommand("DATA");
-		if (!contains("354", lastResponse)) {
-			throw new IOException("Problem with to data command no 354.");
-		}
-		StringBuilder sb = new StringBuilder();
-		String subject = message.getSubject();
-		sb.append("SUBJECT: " + subject);
-		sb.append(SMTP_LINEFEED);
-		String body = message.getBody();
-		sb.append(body);
-		sb.append(SMTP_LINEFEED);
-		sb.append(".");
-		sb.append(SMTP_LINEFEED);
-		
-		String data = sb.toString();
-		sendCommand(sb.toString());
-		if (!contains("250", lastResponse)) {
-			throw new IOException("Problem with to data\n" + data);
-		}
+		SmtpMailer.send(this,  message);
+	}
+	
+	public String generateBoundry(int lenght) {
+		return BoundryGenerator.gen(lenght);
 	}
 }
