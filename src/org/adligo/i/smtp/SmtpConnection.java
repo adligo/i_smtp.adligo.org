@@ -15,7 +15,7 @@ import org.adligo.i.adi.client.InvocationException;
 import org.adligo.i.log.client.Log;
 import org.adligo.i.log.client.LogFactory;
 import org.adligo.i.pool.PooledConnection;
-import org.adligo.i.smtp.models.I_EmailMessage;
+import org.adligo.i.smtp.models.I_EMailMessage;
 import org.adligo.models.core.client.EMailAddress;
 
 public class SmtpConnection extends PooledConnection implements I_SmtpConnection {
@@ -103,6 +103,18 @@ public class SmtpConnection extends PooledConnection implements I_SmtpConnection
 	}
 
 	/* (non-Javadoc)
+	 * @see org.adligo.i.smtp.I_SmtpConnection#sendCommandPart(java.lang.String)
+	 */
+	@Override
+	public void sendCommandPart(String command) throws IOException {
+		if (log.isDebugEnabled()) {
+			log.debug("Sending command part;\n" + command);
+		}
+		printer.write(command);
+		printer.flush();
+	}
+	
+	/* (non-Javadoc)
 	 * @see org.adligo.i.smtp.I_SmtpConnection#sendCommand(java.lang.String)
 	 */
 	@Override
@@ -153,7 +165,7 @@ public class SmtpConnection extends PooledConnection implements I_SmtpConnection
 	}
 
 	@Override
-	public void send(I_EmailMessage message) throws IOException {
+	public void send(I_EMailMessage message) throws IOException, InvocationException {
 		SmtpMailer.send(this,  message);
 	}
 	

@@ -5,18 +5,27 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.adligo.i.adi.client.InvocationException;
 import org.adligo.i.log.client.Log;
 import org.adligo.i.log.client.LogFactory;
 import org.adligo.i.smtp.models.I_EMailAttachment;
-import org.adligo.i.smtp.models.I_EmailMessage;
+import org.adligo.i.smtp.models.I_EMailMessage;
 import org.adligo.models.core.client.EMailAddress;
+import org.adligo.models.core.client.ValidationException;
 import org.adligo.models.params.client.Base64;
 
 public class SmtpMailer {
+	public static final String ATTACHMENT_READ_RETURNED_NULL_FOR_ATTACHMENT = "Attachment.read() returned null for attachment ";
 	private static final Log log = LogFactory.getLog(SmtpMailer.class);
 	public static final String SMTP_LINEFEED = "\r\n";
 	
-	protected static void send(I_SmtpConnection con, I_EmailMessage message) throws IOException {
+	protected static void send(I_SmtpConnection con, I_EMailMessage message) throws IOException, InvocationException {
+		try {
+			message.isValid();
+		} catch (ValidationException x) {
+			throw new InvocationException(x.getMessage(), x);
+		}
+				
 		con.reconnect();
 		
 		EMailAddress from = message.getFrom();
@@ -24,11 +33,11 @@ public class SmtpMailer {
 		if (!SmtpHelper.contains("OK", lastResponse)) {
 			throw new IOException("Problem with from address " + from.getEMail());
 		}
-		List<EMailAddress> tos = message.getTo();
+		List<EMailAddress> tos = message.getTos();
 		addRcpt(con, tos);
-		List<EMailAddress> ccs = message.getCc();
+		List<EMailAddress> ccs = message.getCcs();
 		addRcpt(con, ccs);
-		List<EMailAddress> bccs = message.getBcc();
+		List<EMailAddress> bccs = message.getBccs();
 		addRcpt(con, bccs);
 		
 		lastResponse = con.sendCommand("DATA");
@@ -36,7 +45,7 @@ public class SmtpMailer {
 			throw new IOException("Problem with to data command no 354.");
 		}
 		StringBuilder sb = new StringBuilder();
-		boolean addMime = message.isHtmlBodyOrHasAttachments();
+		boolean addMime = message.isUsingMimeTypes();
 		String boundry = null;
 		if (addMime) {
 			boundry = con.generateBoundry(16);
@@ -84,8 +93,12 @@ public class SmtpMailer {
 		sb.append(SMTP_LINEFEED);
 		
 		List<I_EMailAttachment> attachments = message.getAttachments();
+		if (attachments.size() >= 1) {
+			con.sendCommandPart(sb.toString());
+			sb = new StringBuilder();
+		}
 		for (I_EMailAttachment attachment: attachments) {
-			addAttachment(sb, boundry, attachment);
+			addAttachment(con, boundry, attachment);
 		}
 		if (addMime) {
 			sb.append(SMTP_LINEFEED);
@@ -104,8 +117,9 @@ public class SmtpMailer {
 		}
 	}
 
-	public static void addAttachment(StringBuilder sb, String boundry,
-			I_EMailAttachment attachment) throws IOException {
+	public static void addAttachment(I_SmtpConnection con, String boundry,
+			I_EMailAttachment attachment) throws IOException, InvocationException {
+		StringBuilder sb = new StringBuilder();
 		sb.append("--");
 		sb.append(boundry);
 		sb.append(SMTP_LINEFEED);
@@ -125,33 +139,30 @@ public class SmtpMailer {
 		sb.append(SMTP_LINEFEED);
 		sb.append(SMTP_LINEFEED);
 		
-		InputStream in = null;
-		IOException caught = null;
-		try {
-			in = attachment.create();
-			List<Byte> bytes = new ArrayList<Byte>();
-			int next = in.read();
-			while (next != -1) {
-				bytes.add(new Byte((byte) next));
-				next = in.read();
-			}
-			byte [] bs = new byte[bytes.size()];
-			for (int i = 0; i < bytes.size(); i++) {
-				bs[i] = bytes.get(i);
-			}
-			String base64 = Base64.encode(bs);
-			sb.append(base64);
-		} catch (IOException x) {
-			caught = x;
-		} finally {
-			if (in != null) {
-				in.close();
-			} 
-			if (caught != null) {
-				throw caught;
+		con.sendCommandPart(sb.toString());
+		attachment.gettingData();
+		byte [] bytes = new byte[3];
+		int counter = 0;
+		while (attachment.hasMoreData()) {
+			bytes[counter++] = attachment.nextByte();
+			
+			if (counter == 3) {
+				String base64 = Base64.encode(bytes);
+				con.sendCommandPart(base64);
+				counter = 0;
 			}
 		}
-		sb.append(SMTP_LINEFEED);
+		if (counter != 3 && counter != 0 ) {
+			byte [] lastBytes = new byte[counter];
+			for (int i = 0; i < counter; i++) {
+				lastBytes[i] = bytes[i];
+			}
+			String base64 = Base64.encode(bytes);
+			con.sendCommandPart(base64);
+		}
+		attachment.finishedGettingData();
+		con.sendCommandPart(SMTP_LINEFEED);
+		
 	}
 
 	private static void disclose(String header, List<EMailAddress> tos, StringBuilder sb) {

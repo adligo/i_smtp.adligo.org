@@ -1,9 +1,9 @@
 package org.adligo.i.smtp;
 
 import org.adligo.i.pool.I_PooledConnectionFactory;
-import org.adligo.i.pool.PoolConfiguration;
+import org.adligo.i.pool.PoolConfigurationMutant;
 
-public class SmtpConnectionFactoryConfig  extends PoolConfiguration<SmtpConnection> implements I_SmtpConnectionFactoryConfig {
+public class SmtpConnectionFactoryConfig  extends PoolConfigurationMutant<SmtpConnection> implements I_SmtpConnectionFactoryConfig {
 	private SmtpConnectionFactoryConfigMutant mutant;
 	private SmtpConnectionFactory factory;
 	

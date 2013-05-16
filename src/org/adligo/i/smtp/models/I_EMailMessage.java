@@ -3,16 +3,17 @@ package org.adligo.i.smtp.models;
 import java.util.List;
 
 import org.adligo.models.core.client.EMailAddress;
+import org.adligo.models.core.client.I_Validateable;
 
-public interface I_EmailMessage {
+public interface I_EMailMessage extends I_Validateable {
 
 	public abstract EMailAddress getFrom();
 
-	public abstract List<EMailAddress> getTo();
+	public abstract List<EMailAddress> getTos();
 
-	public abstract List<EMailAddress> getCc();
+	public abstract List<EMailAddress> getCcs();
 
-	public abstract List<EMailAddress> getBcc();
+	public abstract List<EMailAddress> getBccs();
 	
 	public abstract String getSubject();
 
@@ -23,6 +24,6 @@ public interface I_EmailMessage {
 	public boolean isDiscloseCcs();
 	public boolean isDiscloseBccs();
 	public boolean isHtmlBody();
-	public boolean isHtmlBodyOrHasAttachments();
+	public boolean isUsingMimeTypes();
 	public List<I_EMailAttachment> getAttachments();
 }
