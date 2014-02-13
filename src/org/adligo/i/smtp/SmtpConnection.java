@@ -11,12 +11,11 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.adligo.i.adi.client.InvocationException;
-import org.adligo.i.log.client.Log;
-import org.adligo.i.log.client.LogFactory;
+import org.adligo.i.adi.shared.InvocationException;
+import org.adligo.i.log.shared.Log;
+import org.adligo.i.log.shared.LogFactory;
 import org.adligo.i.pool.PooledConnection;
 import org.adligo.i.smtp.models.I_EMailMessage;
-import org.adligo.models.core.client.EMailAddress;
 
 public class SmtpConnection extends PooledConnection implements I_SmtpConnection {
 	public static final String SMTP_LINEFEED = "\r\n";

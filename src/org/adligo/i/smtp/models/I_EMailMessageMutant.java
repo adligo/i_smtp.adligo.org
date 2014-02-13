@@ -2,8 +2,8 @@ package org.adligo.i.smtp.models;
 
 import java.util.List;
 
-import org.adligo.models.core.client.EMailAddress;
-import org.adligo.models.core.client.InvalidParameterException;
+import org.adligo.models.core.shared.EMailAddress;
+import org.adligo.models.core.shared.InvalidParameterException;
 
 public interface I_EMailMessageMutant extends I_EMailMessage {
 

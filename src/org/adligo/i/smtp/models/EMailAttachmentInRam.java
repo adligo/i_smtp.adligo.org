@@ -2,8 +2,8 @@ package org.adligo.i.smtp.models;
 
 import java.io.IOException;
 
-import org.adligo.i.log.client.Log;
-import org.adligo.i.log.client.LogFactory;
+import org.adligo.i.log.shared.Log;
+import org.adligo.i.log.shared.LogFactory;
 
 public class EMailAttachmentInRam implements I_EMailAttachment {
 	private static final Log log = LogFactory.getLog(EMailAttachmentInRam.class);

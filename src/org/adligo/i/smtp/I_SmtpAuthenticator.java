@@ -2,7 +2,7 @@ package org.adligo.i.smtp;
 
 import java.io.IOException;
 
-import org.adligo.i.adi.client.InvocationException;
+import org.adligo.i.adi.shared.InvocationException;
 
 /**
  * implementations need to to be thread-safe.

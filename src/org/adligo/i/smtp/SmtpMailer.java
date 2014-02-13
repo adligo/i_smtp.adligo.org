@@ -1,18 +1,16 @@
 package org.adligo.i.smtp;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.List;
 
-import org.adligo.i.adi.client.InvocationException;
-import org.adligo.i.log.client.Log;
-import org.adligo.i.log.client.LogFactory;
+import org.adligo.i.adi.shared.InvocationException;
+import org.adligo.i.log.shared.Log;
+import org.adligo.i.log.shared.LogFactory;
 import org.adligo.i.smtp.models.I_EMailAttachment;
 import org.adligo.i.smtp.models.I_EMailMessage;
-import org.adligo.models.core.client.EMailAddress;
-import org.adligo.models.core.client.ValidationException;
-import org.adligo.models.params.client.Base64;
+import org.adligo.models.core.shared.EMailAddress;
+import org.adligo.models.core.shared.ValidationException;
+import org.adligo.models.params.shared.Base64;
 
 public class SmtpMailer {
 	public static final String ATTACHMENT_READ_RETURNED_NULL_FOR_ATTACHMENT = "Attachment.read() returned null for attachment ";

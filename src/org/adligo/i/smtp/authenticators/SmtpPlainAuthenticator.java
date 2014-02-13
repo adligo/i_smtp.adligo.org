@@ -2,14 +2,12 @@ package org.adligo.i.smtp.authenticators;
 
 import java.io.IOException;
 
-import org.adligo.i.adi.client.InvocationException;
-import org.adligo.i.log.client.Log;
-import org.adligo.i.log.client.LogFactory;
+import org.adligo.i.adi.shared.InvocationException;
 import org.adligo.i.smtp.I_SmtpAuthenticator;
 import org.adligo.i.smtp.I_SmtpConnection;
 import org.adligo.i.smtp.I_SmtpCredentials;
 import org.adligo.i.smtp.SmtpHelper;
-import org.adligo.models.params.client.Base64;
+import org.adligo.models.params.shared.Base64;
 
 public class SmtpPlainAuthenticator implements I_SmtpAuthenticator {
 	public static final String ERROR_WITH_AUTH_PLAIN = "The User did not authenticate the AUTH PLAIN did NOT return 334.\n";

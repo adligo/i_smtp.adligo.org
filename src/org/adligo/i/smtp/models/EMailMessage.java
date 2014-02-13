@@ -2,10 +2,10 @@ package org.adligo.i.smtp.models;
 
 import java.util.List;
 
-import org.adligo.i.util.client.I_Immutable;
-import org.adligo.models.core.client.EMailAddress;
-import org.adligo.models.core.client.InvalidParameterException;
-import org.adligo.models.core.client.ValidationException;
+import org.adligo.i.util.shared.I_Immutable;
+import org.adligo.models.core.shared.EMailAddress;
+import org.adligo.models.core.shared.InvalidParameterException;
+import org.adligo.models.core.shared.ValidationException;
 
 public class EMailMessage implements I_EMailMessage, I_Immutable {
 	private EMailMessageMutant mutant;

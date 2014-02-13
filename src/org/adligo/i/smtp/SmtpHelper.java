@@ -1,7 +1,7 @@
 package org.adligo.i.smtp;
 
-import org.adligo.i.log.client.Log;
-import org.adligo.i.log.client.LogFactory;
+import org.adligo.i.log.shared.Log;
+import org.adligo.i.log.shared.LogFactory;
 
 public class SmtpHelper {
 	private static final Log log = LogFactory.getLog(SmtpHelper.class);

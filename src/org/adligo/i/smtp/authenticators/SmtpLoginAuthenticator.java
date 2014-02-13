@@ -2,14 +2,12 @@ package org.adligo.i.smtp.authenticators;
 
 import java.io.IOException;
 
-import org.adligo.i.adi.client.InvocationException;
-import org.adligo.i.log.client.Log;
-import org.adligo.i.log.client.LogFactory;
+import org.adligo.i.adi.shared.InvocationException;
 import org.adligo.i.smtp.I_SmtpAuthenticator;
 import org.adligo.i.smtp.I_SmtpConnection;
 import org.adligo.i.smtp.I_SmtpCredentials;
 import org.adligo.i.smtp.SmtpHelper;
-import org.adligo.models.params.client.Base64;
+import org.adligo.models.params.shared.Base64;
 
 public class SmtpLoginAuthenticator implements I_SmtpAuthenticator {
 	public static final String PASSWORD_BASE64_DID_NOT_RETURN_235 = "User did not authenticate Password Base64 did NOT return 235.\n";

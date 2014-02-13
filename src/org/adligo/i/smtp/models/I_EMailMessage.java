@@ -2,8 +2,8 @@ package org.adligo.i.smtp.models;
 
 import java.util.List;
 
-import org.adligo.models.core.client.EMailAddress;
-import org.adligo.models.core.client.I_Validateable;
+import org.adligo.models.core.shared.EMailAddress;
+import org.adligo.models.core.shared.I_Validateable;
 
 public interface I_EMailMessage extends I_Validateable {
 

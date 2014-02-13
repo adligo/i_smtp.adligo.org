@@ -5,10 +5,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import org.adligo.models.core.client.EMailAddress;
-import org.adligo.models.core.client.I_Validateable;
-import org.adligo.models.core.client.InvalidParameterException;
-import org.adligo.models.core.client.ValidationException;
+import org.adligo.models.core.shared.EMailAddress;
+import org.adligo.models.core.shared.I_Validateable;
+import org.adligo.models.core.shared.InvalidParameterException;
+import org.adligo.models.core.shared.ValidationException;
 
 public class EMailMessageMutant implements I_EMailMessage, I_EMailMessageMutant {
 	public static final String E_MAIL_MESSAGE_MUTANT_REQUIRES_AT_LEAST_ONE_RECIPIENT_IE_TO_CC_OR_BCC_EMAIL_ADDRESS = "EMailMessageMutant requires at least one recipient (ie to, cc, or bcc email address).";
